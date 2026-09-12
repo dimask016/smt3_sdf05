@@ -75,35 +75,32 @@ Namun di dalamnya ada beberapa tanggung jawab kecil:
 
 Maka kita pecah menjadi fungsi-fungsi kecil.
 
-Kode hasil refactor
-
-```python
+# ------------------------------------------------------------
+# KODE HASIL REFACTOR
+# ------------------------------------------------------------
 def hitung_subtotal(harga_satuan, jumlah):
-    """Menghitung subtotal sebelum diskon dan ongkir."""
+    """Menghitung subtotal dari harga satuan dan jumlah barang."""
     return harga_satuan * jumlah
 
-
 def hitung_total_item(daftar_kuantitas_item):
-    """Menjumlahkan seluruh kuantitas item."""
+    """Menjumlahkan total kuantitas dari semua item dalam daftar."""
     return sum(daftar_kuantitas_item)
 
-
 def hitung_total_setelah_diskon(subtotal, total_item):
-    """
-    Menghitung total setelah diskon.
-    Diskon 10% jika total_item > 100, selain itu 5%.
+    """Menghitung total harga setelah menerapkan diskon.
+    Diskon 10% jika total_item lebih dari 100, jika tidak 5%.
     """
     if total_item > 100:
-        return subtotal * 0.9   # bayar 90%, diskon 10%
-    return subtotal * 0.95      # bayar 95%, diskon 5%
-
+        return subtotal * 0.9 # bayar 90%
+    return subtotal * 0.95 # bayar 95%
 
 def hitung_ongkir(is_member, biaya_kirim):
-    """Member gratis ongkir; non-member dikenakan biaya kirim."""
+    """Menentukan biaya ongkir berdasarkan status keanggotaan.
+    Anggota (member) mendapatkan gratis ongkir, non-member dikenakan biaya kirim.
+    """
     if is_member:
         return 0
     return biaya_kirim
-
 
 def hitung_total_pesanan(
     harga_satuan,
@@ -112,14 +109,24 @@ def hitung_total_pesanan(
     is_member,
     biaya_kirim,
 ):
-    """Menghitung total pesanan akhir."""
+    """Menghitung total pesanan akhir termasuk subtotal, diskon, dan ongkir.
+
+    Args:
+        harga_satuan (float): Harga per unit barang.
+        jumlah (int): Jumlah unit barang.
+        daftar_kuantitas_item (list): Daftar kuantitas untuk setiap item.
+        is_member (bool): Status keanggotaan (True jika member, False jika bukan).
+        biaya_kirim (float): Biaya pengiriman standar.
+
+    Returns:
+        float: Total harga pesanan yang harus dibayar.
+    """
     subtotal = hitung_subtotal(harga_satuan, jumlah)
     total_item = hitung_total_item(daftar_kuantitas_item)
     total_setelah_diskon = hitung_total_setelah_diskon(subtotal, total_item)
     ongkir = hitung_ongkir(is_member, biaya_kirim)
 
     return total_setelah_diskon + ongkir
-```
 
 Duplikasi s dan t dihapus. Sekarang total item hanya dihitung sekali melalui hitung_total_item.
 
@@ -129,28 +136,71 @@ Duplikasi s dan t dihapus. Sekarang total item hanya dihitung sekali melalui hit
 
 Contoh pengujian:
 
-```python
-if __name__ == "__main__":
-    # total item 110 > 100, member => diskon 10%, ongkir gratis
-    assert hitung_total_pesanan(10000, 2, [60, 50], True, 15000) == 18000.0
+# ------------------------------------------------------------
+# UJI PERILAKU — pastikan hasil sama dengan kode awal
+# ------------------------------------------------------------
+print("=" * 60)
+print("UJI PERILAKU: KODE AWAL vs KODE REFACTOR")
+print("=" * 60)
 
-    # total item 50 <= 100, non-member => diskon 5%, ongkir 15000
-    assert hitung_total_pesanan(5000, 2, [20, 30], False, 15000) == 24500.0
+kasus_uji = [
+    # (harga, jumlah, daftar_item, is_member, biaya_kirim)
+    (10000, 2, [60, 50], True, 15000), # total item 110 > 100, member
+    (5000, 2, [20, 30], False, 15000), # total item 50 <= 100, non-member
+    (1000, 5, [100], True, 20000), # total item 100 (batas), member
+    (2000, 3, [40, 40, 30], False, 10000), # total 110 > 100, non-member
+    (1500, 4, [10, 10], True, 0), # total 20 <= 100, member
+]
 
-    # total item tepat 100 => diskon 5%, member => ongkir gratis
-    assert hitung_total_pesanan(1000, 5, [100], True, 20000) == 4750.0
+print(f"{'Kasus':<5} {'Kode Awal':>12} {'Kode Refactor':>15} {'Cocok?':>8}")
+print("-" * 60)
 
-    print("Semua uji perilaku sama.")
-```
+semua_cocok = True
+for i, (harga, jumlah, daftar, member, ongkir) in enumerate(kasus_uji, 1):
+    hasil_awal = f(harga, jumlah, daftar, member, ongkir)
+    hasil_refactor = hitung_total_pesanan(harga, jumlah, daftar, member, ongkir)
 
-Perbandingan manual:
+    cocok = abs(hasil_awal - hasil_refactor) < 1e-9
+    semua_cocok = semua_cocok and cocok
 
-Input Kode awal Kode refactor
-(10000, 2, [60,50], True, 15000) 18000 18000
-(5000, 2, [20,30], False, 15000) 24500 24500
-(1000, 5, [100], True, 20000) 4750 4750
-
+    print(f"{i:<5} {hasil_awal:>12,.2f} {hasil_refactor:>15,.2f} {'✅' if cocok else '❌':>8}")
+print("-" * 60)
+print("KESIMPULAN:", "SEMUA PERILAKU SAMA ✅" if semua_cocok else "ADA YANG BERBEDA ❌")
 ---
+
+# ------------------------------------------------------------
+# CONTOH PENGGUNAAN
+# ------------------------------------------------------------
+print("\n" + "=" * 60)
+print("CONTOH PENGGUNAAN")
+print("=" * 60)
+
+total = hitung_total_pesanan(
+    harga_satuan = 10000,
+    jumlah = 2,
+    daftar_kuantitas_item= [60, 50],
+    is_member = True,
+    biaya_kirim = 15000,
+)
+print(f"Total pesanan: Rp {total:,.2f}")
+
+============================================================
+UJI PERILAKU: KODE AWAL vs KODE REFACTOR
+============================================================
+Kasus    Kode Awal   Kode Refactor   Cocok?
+------------------------------------------------------------
+1        18,000.00       18,000.00        ✅
+2        24,500.00       24,500.00        ✅
+3         4,750.00        4,750.00        ✅
+4        15,400.00       15,400.00        ✅
+5         5,700.00        5,700.00        ✅
+------------------------------------------------------------
+KESIMPULAN: SEMUA PERILAKU SAMA ✅
+
+============================================================
+CONTOH PENGGUNAAN
+============================================================
+Total pesanan: Rp 18,000.00
 
 5. Bagian C — Refleksi 3 kalimat
 
