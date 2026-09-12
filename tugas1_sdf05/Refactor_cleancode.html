@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Refactor Clean Code — Dimas Kurniawan</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --bg-soft: #1e293b;
+    --card: #ffffff;
+    --ink: #0f172a;
+    --muted: #64748b;
+    --line: #e2e8f0;
+    --primary: #6366f1;
+    --primary-soft: #eef2ff;
+    --accent: #06b6d4;
+    --danger: #ef4444;
+    --success: #10b981;
+    --warn: #f59e0b;
+    --radius: 14px;
+    --shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #312e81 100%);
+    color: var(--ink);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ================= HEADER ================= */
+  header.hero {
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(12px);
+    color: #fff;
+    padding: 28px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .hero-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .brand h1 {
+    margin: 0;
+    font-size: 1.35rem;
+    letter-spacing: 0.3px;
+  }
+
+  .brand h1 span { color: var(--accent); }
+
+  .brand p {
+    margin: 4px 0 0;
+    font-size: 0.85rem;
+    color: #cbd5e1;
+  }
+
+  .student-card {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .avatar {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(99, 102, 241, 0.45);
+  }
+
+  .student-info {
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .student-info strong { color: #fff; }
+  .student-info span { color: #cbd5e1; }
+  .student-info .pill {
+    display: inline-block;
+    background: rgba(6, 182, 212, 0.15);
+    color: #67e8f9;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    margin-top: 4px;
+  }
+
+  /* ================= LAYOUT ================= */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+  }
+
+  .intro {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #e2e8f0;
+    padding: 22px 24px;
+    border-radius: var(--radius);
+    margin-bottom: 28px;
+    backdrop-filter: blur(8px);
+  }
+
+  .intro h2 { margin: 0 0 8px; font-size: 1.1rem; color: #fff; }
+  .intro p { margin: 0; font-size: 0.92rem; color: #cbd5e1; }
+
+  .intro .formula {
+    margin-top: 14px;
+    background: rgba(6, 182, 212, 0.1);
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-family: "Consolas", monospace;
+    font-size: 0.85rem;
+    color: #a5f3fc;
+  }
+
+  /* ================= STEPPER ================= */
+  .stepper {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .step-btn {
+    flex: 1;
+    min-width: 140px;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #cbd5e1;
+    padding: 12px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: left;
+    transition: all 0.25s;
+  }
+
+  .step-btn small {
+    display: block;
+    font-weight: 400;
+    font-size: 0.72rem;
+    color: #94a3b8;
+  }
+
+  .step-btn:hover {
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .step-btn.active {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 8px 22px rgba(99, 102, 241, 0.45);
+  }
+
+  .step-btn.active small { color: rgba(255, 255, 255, 0.85); }
+
+  /* ================= PANELS ================= */
+  .panel {
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .panel.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 22px;
+  }
+
+  .card h3 {
+    margin: 0 0 6px;
+    font-size: 1.15rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card h3 .badge {
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-size: 0.72rem;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+  }
+
+  .card p.desc {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin: 0 0 16px;
+  }
+
+  /* ================= CODE BLOCK ================= */
+  .code-wrap {
+    background: #0b1220;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #1e293b;
+  }
+
+  .code-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: #111c33;
+    border-bottom: 1px solid #1e293b;
+  }
+
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .dot.r { background: #ff5f57; }
+  .dot.y { background: #febc2e; }
+  .dot.g { background: #28c840; }
+
+  .code-head span.filename {
+    margin-left: 8px;
+    font-size: 0.78rem;
+    color: #94a3b8;
+    font-family: "Consolas", monospace;
+  }
+
+  .copy-btn {
+    margin-left: auto;
+    background: #1e293b;
+    color: #cbd5e1;
+    border: 1px solid #334155;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  .copy-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+  pre {
+    margin: 0;
+    padding: 18px;
+    overflow-x: auto;
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 0.84rem;
+    line-height: 1.65;
+    color: #e2e8f0;
+    tab-size: 4;
+  }
+
+  .kw { color: #c792ea; }
+  .fn { color: #82aaff; }
+  .num { color: #f78c6c; }
+  .str { color: #c3e88d; }
+  .cmt { color: #546e7a; font-style: italic; }
+  .var { color: #ffcb6b; }
+
+  /* ================= TABLE ================= */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.86rem;
+    overflow: hidden;
+    border-radius: 10px;
+  }
+
+  thead {
+    background: var(--primary-soft);
+  }
+
+  th, td {
+    padding: 11px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+  }
+
+  th {
+    color: var(--primary);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  tbody tr { transition: background 0.2s; }
+  tbody tr:hover { background: #f8fafc; }
+
+  code.inline {
+    background: #f1f5f9;
+    color: #be185d;
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-family: "Consolas", monospace;
+    font-size: 0.82rem;
+  }
+
+  .old-name { color: var(--danger); font-weight: 600; font-family: "Consolas", monospace; }
+  .new-name { color: var(--success); font-weight: 600; font-family: "Consolas", monospace; }
+
+  /* ================= INTERACTIVE HIGHLIGHT ================= */
+  .highlight-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .chip {
+    background: #f1f5f9;
+    border: 1px solid var(--line);
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: 0.2s;
+    font-family: "Consolas", monospace;
+  }
+
+  .chip:hover { border-color: var(--primary); color: var(--primary); }
+  .chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+  /* ================= TEST SIMULATOR ================= */
+  .sim-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .field input {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-family: "Consolas", monospace;
+    transition: 0.2s;
+  }
+
+  .field input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  }
+
+  .switch-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .switch {
+    width: 42px;
+    height: 24px;
+    background: #cbd5e1;
+    border-radius: 999px;
+    position: relative;
+    transition: 0.25s;
+    flex-shrink: 0;
+  }
+
+  .switch::after {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    top: 3px;
+    left: 3px;
+    transition: 0.25s;
+  }
+
+  .switch.on { background: var(--success); }
+  .switch.on::after { left: 21px; }
+
+  .btn {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: #fff;
+    border: none;
+    padding: 11px 22px;
+    border-radius: 9px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s;
+    box-shadow: 0 6px 18px rgba(99, 102, 241, 0.35);
+  }
+
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(99, 102, 241, 0.45); }
+  .btn:active { transform: translateY(0); }
+
+  .btn.ghost {
+    background: #fff;
+    color: var(--primary);
+    border: 1.5px solid var(--primary);
+    box-shadow: none;
+  }
+
+  .result-box {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .result-item {
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .result-item.old { background: #fef2f2; border: 1.5px solid #fecaca; }
+  .result-item.new { background: #ecfdf5; border: 1.5px solid #a7f3d0; }
+
+  .result-item .label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .result-item.old .label { color: var(--danger); }
+  .result-item.new .label { color: var(--success); }
+
+  .result-item .value {
+    font-size: 1.4rem;
+    font-weight: 800;
+    font-family: "Consolas", monospace;
+    color: var(--ink);
+  }
+
+  .status-match {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
+  .status-match.ok { background: #d1fae5; color: #065f46; }
+  .status-match.bad { background: #fee2e2; color: #991b1b; }
+
+  /* ================= REFLECTION ================= */
+  .reflection-item {
+    display: flex;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+
+  .reflection-item:last-child { border-bottom: none; }
+
+  .reflection-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  .reflection-item p { margin: 4px 0 0; font-size: 0.9rem; color: #334155; }
+
+  /* ================= GIT ================= */
+  .terminal {
+    background: #0b1220;
+    border-radius: 12px;
+    padding: 18px;
+    font-family: "Consolas", monospace;
+    font-size: 0.84rem;
+    color: #e2e8f0;
+    line-height: 1.9;
+    border: 1px solid #1e293b;
+  }
+
+  .terminal .prompt { color: var(--success); }
+  .terminal .cmd { color: #fff; }
+  .terminal .out { color: #94a3b8; }
+  .terminal .hash { color: var(--warn); }
+
+  /* ================= FOOTER ================= */
+  footer {
+    text-align: center;
+    padding: 24px 20px 40px;
+    color: #64748b;
+    font-size: 0.78rem;
+  }
+
+  footer strong { color: #94a3b8; }
+
+  @media (max-width: 640px) {
+    .hero-inner { flex-direction: column; align-items: flex-start; }
+    .result-box { grid-template-columns: 1fr; }
+    .step-btn { min-width: 100%; }
+    .card { padding: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== HEADER ==================== -->
+<header class="hero">
+  <div class="hero-inner">
+    <div class="brand">
+      <h1>Refactor <span>Clean Code</span> — Penamaan &amp; Fungsi</h1>
+      <p>Tugas Sesi 2 · Praktikum IK102 · Universitas Cakrawala</p>
+    </div>
+
+    <div class="student-card">
+      <div class="avatar">DK</div>
+      <div class="student-info">
+        <strong>Dimas Kurniawan</strong><br />
+        <span>NIM 25120300016</span><br />
+        <span>Software Development Fundamental (SDF05)</span><br />
+        <span>Dosen: Prabowo Yoga</span>
+        <span class="pill">Sesi 2 · 5%</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ==================== MAIN ==================== -->
+<main>
+
+  <!-- INTRO -->
+  <section class="intro">
+    <h2>📌 Tentang Tugas Ini</h2>
+    <p>
+      Kode awal di bawah sengaja ditulis dengan nama yang tidak deskriptif dan satu fungsi besar.
+      Tugas kita adalah memperbaiki penamaan, memecah fungsi menjadi bagian kecil, menghapus
+      duplikasi, lalu memastikan perilakunya tidak berubah.
+    </p>
+    <div class="formula">
+      total pesanan = (harga_satuan × jumlah) × diskon + ongkir<br />
+      diskon = 10% jika total_item &gt; 100, selain itu 5%<br />
+      ongkir = gratis jika member, selain itu biaya kirim
+    </div>
+  </section>
+
+  <!-- STEPPER -->
+  <nav class="stepper">
+    <button class="step-btn active" data-step="0">
+      Bagian A <small>Analisis &amp; Penamaan</small>
+    </button>
+    <button class="step-btn" data-step="1">
+      Bagian B <small>Dekomposisi Fungsi</small>
+    </button>
+    <button class="step-btn" data-step="2">
+      Simulasi <small>Uji Perilaku</small>
+    </button>
+    <button class="step-btn" data-step="3">
+      Bagian C <small>Refleksi &amp; Git</small>
+    </button>
+  </nav>
+
+  <!-- ============ PANEL 0 — ANALISIS ============ -->
+  <section class="panel active" id="panel-0">
+
+    <div class="card">
+      <h3>🔍 Kode Awal (Sebelum Refactor) <span class="badge">BAU CODE</span></h3>
+      <p class="desc">
+        Perhatikan nama variabel <code class="inline">f, a, b, c, d, e, x, s, t</code> — semuanya
+        tidak menjelaskan maksud. Ada juga perhitungan yang diulang dua kali.
+      </p>
+      <div class="code-wrap">
+        <div class="code-head">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="filename">kode_awal.py</span>
+          <button class="copy-btn" onclick="copyCode(this, 'codeAwal')">Copy</button>
+        </div>
+        <pre id="codeAwal"><span class="kw">def</span> <span class="fn">f</span>(<span class="var">a</span>, <span class="var">b</span>, <span class="var">c</span>, <span class="var">d</span>, <span class="var">e</span>):
+    <span class="var">x</span> = <span class="var">a</span> * <span class="var">b</span>
+    <span class="var">s</span> = <span class="num">0</span>
+    <span class="kw">for</span> <span class="var">i</span> <span class="kw">in</span> <span class="var">c</span>:
+        <span class="var">s</span> = <span class="var">s</span> + <span class="var">i</span>
+    <span class="kw">if</span> <span class="var">s</span> &gt; <span class="num">100</span>:
+        <span class="var">x</span> = <span class="var">x</span> * <span class="num">0.9</span>
+    <span class="kw">else</span>:
+        <span class="var">x</span> = <span class="var">x</span> * <span class="num">0.95</span>
+    <span class="var">t</span> = <span class="num">0</span>
+    <span class="kw">for</span> <span class="var">i</span> <span class="kw">in</span> <span class="var">c</span>:
+        <span class="var">t</span> = <span class="var">t</span> + <span class="var">i</span>
+    <span class="kw">if</span> <span class="var">d</span>:
+        <span class="var">x</span> = <span class="var">x</span> + <span class="num">0</span>
+    <span class="kw">else</span>:
+        <span class="var">x</span> = <span class="var">x</span> + <span class="var">e</span>
+    <span class="kw">return</span> <span class="var">x</span></pre>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>⚠️ Masalah yang Ditemukan</h3>
+      <div class="highlight-box" id="problemChips">
+        <span class="chip" data-msg="Nama f, a, b, c, d, e, x, s, t tidak menjelaskan maksud.">Nama tidak deskriptif</span>
+        <span class="chip" data-msg="Fungsi melakukan 4 hal: subtotal, total item, diskon, ongkir.">Fungsi terlalu besar</span>
+        <span class="chip" data-msg="Variabel s dan t menghitung hal yang sama (duplikasi).">Duplikasi kode</span>
+        <span class="chip" data-msg="Variabel t dihitung tapi tidak pernah dipakai lagi.">Dead code</span>
+        <span class="chip" data-msg="Angka 0.9 dan 0.95 muncul tanpa penjelasan (magic number).">Magic number</span>
+      </div>
+      <p class="desc" id="problemDetail" style="margin-top:14px; min-height:22px; color: var(--primary); font-weight:600;">
+        Klik salah satu chip di atas untuk melihat detailnya.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>🏷️ Perbandingan Penamaan <span class="badge">BAGIAN A</span></h3>
+      <p class="desc">Setiap nama lama digantikan dengan nama yang menyatakan maksudnya.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Nama Lama</th>
+            <th>Nama Baru</th>
+            <th>Alasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="old-name">f</span></td><td><span class="new-name">hitung_total_pesanan</span></td><td>Menjelaskan tujuan fungsi</td></tr>
+          <tr><td><span class="old-name">a</span></td><td><span class="new-name">harga_satuan</span></td><td>Harga per item</td></tr>
+          <tr><td><span class="old-name">b</span></td><td><span class="new-name">jumlah</span></td><td>Jumlah barang dibeli</td></tr>
+          <tr><td><span class="old-name">c</span></td><td><span class="new-name">daftar_kuantitas_item</span></td><td>List kuantitas item</td></tr>
+          <tr><td><span class="old-name">d</span></td><td><span class="new-name">is_member</span></td><td>Status member</td></tr>
+          <tr><td><span class="old-name">e</span></td><td><span class="new-name">biaya_kirim</span></td><td>Ongkos kirim</td></tr>
+          <tr><td><span class="old-name">x</span></td><td><span class="new-name">subtotal / total_setelah_diskon / total_pesanan</span></td><td>Sesuai tahap perhitungan</td></tr>
+          <tr><td><span class="old-name">s, t</span></td><td><span class="new-name">total_item</span></td><td>Cukup satu variabel (t duplikat)</td></tr>
+          <tr><td><span class="old-name">i</span></td><td><span class="new-name">kuantitas_item</span></td><td>Item yang sedang dijumlahkan</td></tr>
+        </tbody>
+      </table>
+
+      <div style="margin-top:18px; padding:14px 16px; background:#eef2ff; border-left:4px solid var(--primary); border-radius:10px;">
+        <strong style="color:var(--primary);">🌟 Nama paling penting:</strong>
+        <span style="color:#334155; font-size:0.9rem;">
+          <code class="inline">hitung_total_pesanan</code> dan
+          <code class="inline">daftar_kuantitas_item</code>. Keduanya langsung memberi tahu
+          <em>apa</em> yang dilakukan fungsi dan <em>apa</em> isi parameter yang dijumlahkan.
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PANEL 1 — DEKOMPOSISI ============ -->
+  <section class="panel" id="panel-1">
+
+    <div class="card">
+      <h3>🧩 Satu Hal yang Dilakukan Fungsi</h3>
+      <p class="desc">
+        Fungsi utama sebenarnya melakukan <strong>satu hal besar</strong>: menghitung total pesanan.
+        Namun di dalamnya terdapat <strong>4 tanggung jawab kecil</strong> yang bisa dipisahkan.
+      </p>
+      <div class="highlight-box">
+        <span class="chip active">1. hitung_subtotal</span>
+        <span class="chip active">2. hitung_total_item</span>
+        <span class="chip active">3. hitung_total_setelah_diskon</span>
+        <span class="chip active">4. hitung_ongkir</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>✅ Kode Hasil Refactor <span class="badge">CLEAN</span></h3>
+      <p class="desc">
+        Setiap fungsi kini hanya punya satu tanggung jawab. Duplikasi <code class="inline">s</code>
+        dan <code class="inline">t</code> dihapus, dan magic number diberi komentar.
+      </p>
+      <div class="code-wrap">
+        <div class="code-head">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="filename">kode_refactor.py</span>
+          <button class="copy-btn" onclick="copyCode(this, 'kodeRefactor')">Copy</button>
+        </div>
+        <pre id="kodeRefactor"><span class="kw">def</span> <span class="fn">hitung_subtotal</span>(<span class="var">harga_satuan</span>, <span class="var">jumlah</span>):
+    <span class="cmt">"""Menghitung subtotal sebelum diskon dan ongkir."""</span>
+    <span class="kw">return</span> <span class="var">harga_satuan</span> * <span class="var">jumlah</span>
+
+
+<span class="kw">def</span> <span class="fn">hitung_total_item</span>(<span class="var">daftar_kuantitas_item</span>):
+    <span class="cmt">"""Menjumlahkan seluruh kuantitas item."""</span>
+    <span class="kw">return</span> <span class="fn">sum</span>(<span class="var">daftar_kuantitas_item</span>)
+
+
+<span class="kw">def</span> <span class="fn">hitung_total_setelah_diskon</span>(<span class="var">subtotal</span>, <span class="var">total_item</span>):
+    <span class="cmt">"""
+    Diskon 10% jika total_item &gt; 100, selain itu 5%.
+    """</span>
+    <span class="kw">if</span> <span class="var">total_item</span> &gt; <span class="num">100</span>:
+        <span class="kw">return</span> <span class="var">subtotal</span> * <span class="num">0.9</span>   <span class="cmt"># bayar 90%</span>
+    <span class="kw">return</span> <span class="var">subtotal</span> * <span class="num">0.95</span>      <span class="cmt"># bayar 95%</span>
+
+
+<span class="kw">def</span> <span class="fn">hitung_ongkir</span>(<span class="var">is_member</span>, <span class="var">biaya_kirim</span>):
+    <span class="cmt">"""Member gratis ongkir; non-member dikenakan biaya kirim."""</span>
+    <span class="kw">if</span> <span class="var">is_member</span>:
+        <span class="kw">return</span> <span class="num">0</span>
+    <span class="kw">return</span> <span class="var">biaya_kirim</span>
+
+
+<span class="kw">def</span> <span class="fn">hitung_total_pesanan</span>(
+    <span class="var">harga_satuan</span>,
+    <span class="var">jumlah</span>,
+    <span class="var">daftar_kuantitas_item</span>,
+    <span class="var">is_member</span>,
+    <span class="var">biaya_kirim</span>,
+):
+    <span class="cmt">"""Menghitung total pesanan akhir."""</span>
+    <span class="var">subtotal</span> = <span class="fn">hitung_subtotal</span>(<span class="var">harga_satuan</span>, <span class="var">jumlah</span>)
+    <span class="var">total_item</span> = <span class="fn">hitung_total_item</span>(<span class="var">daftar_kuantitas_item</span>)
+    <span class="var">total_setelah_diskon</span> = <span class="fn">hitung_total_setelah_diskon</span>(<span class="var">subtotal</span>, <span class="var">total_item</span>)
+    <span class="var">ongkir</span> = <span class="fn">hitung_ongkir</span>(<span class="var">is_member</span>, <span class="var">biaya_kirim</span>)
+
+    <span class="kw">return</span> <span class="var">total_setelah_diskon</span> + <span class="var">ongkir</span></pre>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📊 Perbandingan Struktur</h3>
+      <table>
+        <thead>
+          <tr><th>Aspek</th><th>Kode Awal</th><th>Kode Refactor</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Jumlah fungsi</td><td>1 fungsi besar</td><td>5 fungsi kecil</td></tr>
+          <tr><td>Perulangan ganda</td><td>2× loop pada <code class="inline">c</code></td><td>1× <code class="inline">sum()</code></td></tr>
+          <tr><td>Variabel tidak terpakai</td><td>Ada (<code class="inline">t</code>)</td><td>Tidak ada</td></tr>
+          <tr><td>Nama deskriptif</td><td>❌</td><td>✅</td></tr>
+          <tr><td>Mudah diuji</td><td>❌</td><td>✅ tiap fungsi bisa diuji terpisah</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ PANEL 2 — SIMULASI ============ -->
+  <section class="panel" id="panel-2">
+
+    <div class="card">
+      <h3>🧪 Simulasi Uji Perilaku</h3>
+      <p class="desc">
+        Masukkan input yang sama, lalu bandingkan hasil kode awal dan kode refactor.
+        Jika sama, artinya refactor berhasil mempertahankan perilaku.
+      </p>
+
+      <div class="sim-grid">
+        <div class="field">
+          <label>Harga Satuan</label>
+          <input type="number" id="inHarga" value="10000" />
+        </div>
+        <div class="field">
+          <label>Jumlah</label>
+          <input type="number" id="inJumlah" value="2" />
+        </div>
+        <div class="field">
+          <label>Daftar Kuantitas Item (pisah koma)</label>
+          <input type="text" id="inDaftar" value="60, 50" />
+        </div>
+        <div class="field">
+          <label>Biaya Kirim</label>
+          <input type="number" id="inOngkir" value="15000" />
+        </div>
+      </div>
+
+      <div class="switch-row" id="memberToggle" style="max-width:280px;">
+        <div class="switch on" id="switchMember"></div>
+        <span style="font-size:0.88rem; font-weight:600;">Member (gratis ongkir)</span>
+      </div>
+
+      <div style="margin-top:18px; display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn" onclick="hitungSimulasi()">▶ Hitung &amp; Bandingkan</button>
+        <button class="btn ghost" onclick="resetSimulasi()">↺ Reset Contoh</button>
+      </div>
+
+      <div class="result-box" id="resultBox" style="display:none;">
+        <div class="result-item old">
+          <div class="label">Kode Awal</div>
+          <div class="value" id="valOld">-</div>
+        </div>
+        <div class="result-item new">
+          <div class="label">Kode Refactor</div>
+          <div class="value" id="valNew">-</div>
+        </div>
+        <div class="status-match ok" id="statusMatch">Perilaku Sama ✅</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📋 Contoh Kasus Uji</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Harga</th><th>Jumlah</th><th>Kuantitas</th>
+            <th>Member</th><th>Ongkir</th><th>Hasil</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>10000</td><td>2</td><td>[60, 50]</td><td>Ya</td><td>15000</td>
+            <td><strong>18000.0</strong></td>
+          </tr>
+          <tr>
+            <td>5000</td><td>2</td><td>[20, 30]</td><td>Tidak</td><td>15000</td>
+            <td><strong>24500.0</strong></td>
+          </tr>
+          <tr>
+            <td>1000</td><td>5</td><td>[100]</td><td>Ya</td><td>20000</td>
+            <td><strong>4750.0</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ PANEL 3 — REFLEKSI ============ -->
+  <section class="panel" id="panel-3">
+
+    <div class="card">
+      <h3>💭 Refleksi (3 Kalimat)</h3>
+      <p class="desc">Bagian C — 20% dari nilai tugas.</p>
+
+      <div class="reflection-item">
+        <div class="reflection-num">1</div>
+        <div>
+          <strong>Keputusan penamaan terpenting</strong>
+          <p>
+            Mengganti <code class="inline">f</code> menjadi
+            <code class="inline">hitung_total_pesanan</code> dan
+            <code class="inline">c</code> menjadi
+            <code class="inline">daftar_kuantitas_item</code>, karena keduanya langsung
+            menjelaskan tujuan fungsi dan asal nilai <em>total_item</em>.
+          </p>
+        </div>
+      </div>
+
+      <div class="reflection-item">
+        <div class="reflection-num">2</div>
+        <div>
+          <strong>Memastikan perilaku tidak berubah</strong>
+          <p>
+            Saya mempertahankan rumus asli: subtotal =
+            <code class="inline">harga_satuan * jumlah</code>, total item =
+            <code class="inline">sum(daftar_kuantitas_item)</code>, diskon memakai faktor
+            <code class="inline">0.9</code> atau <code class="inline">0.95</code>, dan ongkir
+            <code class="inline">0</code> jika member.
+          </p>
+        </div>
+      </div>
+
+      <div class="reflection-item">
+        <div class="reflection-num">3</div>
+        <div>
+          <strong>Pengujian</strong>
+          <p>
+            Setelah refactor, saya menguji beberapa kasus — total item &gt; 100, ≤ 100, member,
+            dan non-member — dan hasilnya identik dengan kode awal.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🌿 Submit via Git</h3>
+      <p class="desc">Jalankan perintah berikut di terminal pada folder proyek.</p>
+      <div class="terminal">
+        <div><span class="prompt">$</span> <span class="cmd">git init</span></div>
+        <div><span class="prompt">$</span> <span class="cmd">git add .</span></div>
+        <div><span class="prompt">$</span> <span class="cmd">git commit -m "refactor: perbaiki penamaan dan dekomposisi fungsi"</span></div>
+        <div><span class="prompt">$</span> <span class="cmd">git log --oneline</span></div>
+        <div class="out" style="margin-top:8px;">
+          <span class="hash">a1b2c3d</span> (HEAD -&gt; main) refactor: perbaiki penamaan dan dekomposisi fungsi
+        </div>
+      </div>
+      <button class="btn ghost" style="margin-top:14px;" onclick="copyGit(this)">📋 Copy Perintah Git</button>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Dibuat untuk <strong>Tugas Sesi 2 — Clean Code</strong> · Universitas Cakrawala<br />
+  Dimas Kurniawan · NIM 25120300016 · SDF05
+</footer>
+
+<script>
+/* ==================== STEPPER NAVIGASI ==================== */
+const stepButtons = document.querySelectorAll(".step-btn");
+const panels = document.querySelectorAll(".panel");
+
+stepButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const step = btn.dataset.step;
+
+    stepButtons.forEach((b) => b.classList.remove("active"));
+    panels.forEach((p) => p.classList.remove("active"));
+
+    btn.classList.add("active");
+    document.getElementById("panel-" + step).classList.add("active");
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+});
+
+/* ==================== CHIP MASALAH ==================== */
+const problemChips = document.querySelectorAll("#problemChips .chip");
+const problemDetail = document.getElementById("problemDetail");
+
+problemChips.forEach((chip) => {
+  chip.addEventListener("click", () => {
+    problemChips.forEach((c) => c.classList.remove("active"));
+    chip.classList.add("active");
+    problemDetail.textContent = "👉 " + chip.dataset.msg;
+  });
+});
+
+/* ==================== COPY CODE ==================== */
+function copyCode(btn, elementId) {
+  const text = document.getElementById(elementId).innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const original = btn.textContent;
+    btn.textContent = "✓ Tersalin";
+    setTimeout(() => (btn.textContent = original), 1500);
+  });
+}
+
+function copyGit(btn) {
+  const cmds = [
+    "git init",
+    'git add .',
+    'git commit -m "refactor: perbaiki penamaan dan dekomposisi fungsi"',
+    "git log --oneline",
+  ].join("\n");
+
+  navigator.clipboard.writeText(cmds).then(() => {
+    const original = btn.textContent;
+    btn.textContent = "✓ Perintah Git Tersalin";
+    setTimeout(() => (btn.textContent = original), 1800);
+  });
+}
+
+/* ==================== SWITCH MEMBER ==================== */
+const memberToggle = document.getElementById("memberToggle");
+const switchMember = document.getElementById("switchMember");
+let isMember = true;
+
+memberToggle.addEventListener("click", () => {
+  isMember = !isMember;
+  switchMember.classList.toggle("on", isMember);
+});
+
+/* ==================== FUNGSI KODE AWAL (asli) ==================== */
+function kodeAwal(a, b, c, d, e) {
+  let x = a * b;
+  let s = 0;
+  for (let i of c) s += i;
+  if (s > 100) x = x * 0.9;
+  else x = x * 0.95;
+  let t = 0;
+  for (let i of c) t += i;
+  if (d) x = x + 0;
+  else x = x + e;
+  return x;
+}
+
+/* ==================== FUNGSI KODE REFACTOR ==================== */
+function hitungSubtotal(hargaSatuan, jumlah) {
+  return hargaSatuan * jumlah;
+}
+
+function hitungTotalItem(daftarKuantitasItem) {
+  return daftarKuantitasItem.reduce((acc, v) => acc + v, 0);
+}
+
+function hitungTotalSetelahDiskon(subtotal, totalItem) {
+  if (totalItem > 100) return subtotal * 0.9;
+  return subtotal * 0.95;
+}
+
+function hitungOngkir(isMember, biayaKirim) {
+  return isMember ? 0 : biayaKirim;
+}
+
+function hitungTotalPesananRefactor(
+  hargaSatuan,
+  jumlah,
+  daftarKuantitasItem,
+  member,
+  biayaKirim
+) {
+  const subtotal = hitungSubtotal(hargaSatuan, jumlah);
+  const totalItem = hitungTotalItem(daftarKuantitasItem);
+  const totalSetelahDiskon = hitungTotalSetelahDiskon(subtotal, totalItem);
+  const ongkir = hitungOngkir(member, biayaKirim);
+  return totalSetelahDiskon + ongkir;
+}
+
+/* ==================== SIMULASI ==================== */
+function hitungSimulasi() {
+  const harga = Number(document.getElementById("inHarga").value) || 0;
+  const jumlah = Number(document.getElementById("inJumlah").value) || 0;
+  const ongkir = Number(document.getElementById("inOngkir").value) || 0;
+  const daftarRaw = document.getElementById("inDaftar").value;
+
+  const daftar = daftarRaw
+    .split(",")
+    .map((s) => Number(s.trim()))
+    .filter((n) => !isNaN(n));
+
+  // Kode awal
+  const hasilOld = kodeAwal(harga, jumlah, daftar, isMember, ongkir);
+
+  // Kode refactor
+  const hasilNew = hitungTotalPesananRefactor(
+    harga,
+    jumlah,
+    daftar,
+    isMember,
+    ongkir
+  );
+
+  document.getElementById("valOld").textContent = hasilOld.toLocaleString("id-ID");
+  document.getElementById("valNew").textContent = hasilNew.toLocaleString("id-ID");
+
+  const statusEl = document.getElementById("statusMatch");
+  const cocok = Math.abs(hasilOld - hasilNew) < 1e-9;
+
+  if (cocok) {
+    statusEl.textContent = "✅ Perilaku Sama — refactor berhasil!";
+    statusEl.className = "status-match ok";
+  } else {
+    statusEl.textContent = "❌ Perilaku Berbeda — periksa kembali!";
+    statusEl.className = "status-match bad";
+  }
+
+  document.getElementById("resultBox").style.display = "grid";
+}
+
+function resetSimulasi() {
+  document.getElementById("inHarga").value = 10000;
+  document.getElementById("inJumlah").value = 2;
+  document.getElementById("inDaftar").value = "60, 50";
+  document.getElementById("inOngkir").value = 15000;
+  isMember = true;
+  switchMember.classList.add("on");
+  document.getElementById("resultBox").style.display = "none";
+}
+
+/* Hitung otomatis saat pertama kali panel simulasi dibuka */
+document.querySelector('[data-step="2"]').addEventListener("click", () => {
+  setTimeout(hitungSimulasi, 350);
+});
+</script>
+
+</body>
+</html>
