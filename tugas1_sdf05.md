@@ -158,6 +158,136 @@ Input Kode awal Kode refactor
 2. Saya memastikan perilaku tidak berubah dengan mempertahankan rumus asli: subtotal = harga_satuan * jumlah, total item = sum(daftar_kuantitas_item), diskon memakai faktor 0.9 atau 0.95, dan ongkir 0 jika member.
 3. Setelah refactor, saya menguji beberapa kasus, yaitu total item > 100, total item <= 100, member, dan non-member, dan hasilnya sama dengan kode awal.
 
+
+
 ---
+
+code phyton hasil refactor
+
+# ============================================================
+# TUGAS SESI 2 — CLEAN CODE: PENAMAAN & FUNGSI
+# Universitas Cakrawala · IK102 · Software Development Fundamental (SDF05)
+# Nama  : Dimas Kurniawan
+# NIM   : 25120300016
+# Dosen : Prabowo Yoga
+# ============================================================
+
+# ------------------------------------------------------------
+# KODE AWAL (sebelum refactor) — hanya sebagai pembanding
+# ------------------------------------------------------------
+def f(a, b, c, d, e):
+    x = a * b
+    s = 0
+    for i in c:
+        s = s + i
+    if s > 100:
+        x = x * 0.9
+    else:
+        x = x * 0.95
+    t = 0
+    for i in c:
+        t = t + i
+    if d:
+        x = x + 0
+    else:
+        x = x + e
+    return x
+
+
+# ------------------------------------------------------------
+# KODE HASIL REFACTOR
+# ------------------------------------------------------------
+
+def hitung_subtotal(harga_satuan, jumlah):
+    """Menghitung subtotal sebelum diskon dan ongkir."""
+    return harga_satuan * jumlah
+
+
+def hitung_total_item(daftar_kuantitas_item):
+    """Menjumlahkan seluruh kuantitas item."""
+    return sum(daftar_kuantitas_item)
+
+
+def hitung_total_setelah_diskon(subtotal, total_item):
+    """
+    Menghitung total setelah diskon.
+    Diskon 10% jika total_item > 100, selain itu 5%.
+    """
+    if total_item > 100:
+        return subtotal * 0.9    # bayar 90%
+    return subtotal * 0.95       # bayar 95%
+
+
+def hitung_ongkir(is_member, biaya_kirim):
+    """Member gratis ongkir; non-member dikenakan biaya kirim."""
+    if is_member:
+        return 0
+    return biaya_kirim
+
+
+def hitung_total_pesanan(
+    harga_satuan,
+    jumlah,
+    daftar_kuantitas_item,
+    is_member,
+    biaya_kirim,
+):
+    """Menghitung total pesanan akhir (satu-satunya fungsi publik)."""
+    subtotal            = hitung_subtotal(harga_satuan, jumlah)
+    total_item          = hitung_total_item(daftar_kuantitas_item)
+    total_setelah_diskon = hitung_total_setelah_diskon(subtotal, total_item)
+    ongkir              = hitung_ongkir(is_member, biaya_kirim)
+
+    return total_setelah_diskon + ongkir
+
+
+# ------------------------------------------------------------
+# UJI PERILAKU — pastikan hasil sama dengan kode awal
+# ------------------------------------------------------------
+print("=" * 60)
+print("UJI PERILAKU: KODE AWAL vs KODE REFACTOR")
+print("=" * 60)
+
+kasus_uji = [
+    # (harga, jumlah, daftar_item, is_member, biaya_kirim)
+    (10000, 2, [60, 50], True,  15000),   # total item 110 > 100, member
+    (5000,  2, [20, 30], False, 15000),   # total item 50  <= 100, non-member
+    (1000,  5, [100],    True,  20000),   # total item 100 (batas), member
+    (2000,  3, [40, 40, 30], False, 10000),  # total 110 > 100, non-member
+    (1500,  4, [10, 10], True,  0),       # total 20 <= 100, member
+]
+
+print(f"{'Kasus':<5} {'Kode Awal':>12} {'Kode Refactor':>15} {'Cocok?':>8}")
+print("-" * 60)
+
+semua_cocok = True
+for i, (harga, jumlah, daftar, member, ongkir) in enumerate(kasus_uji, 1):
+    hasil_awal     = f(harga, jumlah, daftar, member, ongkir)
+    hasil_refactor = hitung_total_pesanan(harga, jumlah, daftar, member, ongkir)
+
+    cocok = abs(hasil_awal - hasil_refactor) < 1e-9
+    semua_cocok = semua_cocok and cocok
+
+    print(f"{i:<5} {hasil_awal:>12,.2f} {hasil_refactor:>15,.2f} {'✅' if cocok else '❌':>8}")
+
+print("-" * 60)
+print("KESIMPULAN:", "SEMUA PERILAKU SAMA ✅" if semua_cocok else "ADA YANG BERBEDA ❌")
+
+
+# ------------------------------------------------------------
+# CONTOH PENGGUNAAN
+# ------------------------------------------------------------
+print("\n" + "=" * 60)
+print("CONTOH PENGGUNAAN")
+print("=" * 60)
+
+total = hitung_total_pesanan(
+    harga_satuan         = 10000,
+    jumlah               = 2,
+    daftar_kuantitas_item= [60, 50],
+    is_member            = True,
+    biaya_kirim          = 15000,
+)
+print(f"Total pesanan: Rp {total:,.2f}")
 
 
