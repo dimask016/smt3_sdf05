@@ -1,6 +1,9 @@
 
-Berikut cara menjelaskan dan menjawab tugas refactor Clean Code: Penamaan & Fungsi.
-
+TUGAS SESI 2 - Prinsip Clean Code:
+Penamaan & Fungsi
+Universitas Cakrawala . Prodi Ilmu Komputer IK102 Topik: Clean code - penamaan dan
+fungsi. Bobot: 5% Individu Praktikum di kelas Deadline: sebelum Sesi 3 Sub-CPMK:
+Mahasiswa mampu menerapkan prinsip clean code dalam penamaan dan fungsi.
 1. Analisis kode awal
 
 Kode awal:
@@ -157,21 +160,4 @@ Input Kode awal Kode refactor
 
 ---
 
-6. Submit via Git
 
-Jalankan:
-
-```bash
-git init
-git add .
-git commit -m "refactor: perbaiki penamaan dan dekomposisi fungsi"
-git log --oneline
-```
-
-Contoh hasil git log:
-
-```text
-a1b2c3d (HEAD -> main) refactor: perbaiki penamaan dan dekomposisi fungsi
-```
-
-Jika repository sudah ada, cukup lakukan git add, git commit, lalu tampilkan git log.
